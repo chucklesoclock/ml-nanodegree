@@ -3,7 +3,8 @@ import pandas as pd
 from string import punctuation
 from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer   # , ENGLISH_STOP_WORDS
-from sklearn.model_selection import train_test_split
+from sklearn.cross_validation import train_test_split
+# from sklearn.model_selection import train_test_split #scikit-learn 0.18
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
@@ -20,11 +21,11 @@ df['label'] = df['label'].map({'ham': 0, 'spam': 1})
 # doc_array = count_vector.transform(df['sms']).toarray()
 # frequency_matrix = pd.DataFrame(doc_array, columns=count_vector.get_feature_names())
 
-x_train, x_test, y_train, y_test = train_test_split(df['sms'], df['label'], random_state=1)
+X_train, X_test, y_train, y_test = train_test_split(df['sms'], df['label'], random_state=1)
 
 count_vector = CountVectorizer()
-training_data = count_vector.fit_transform(x_train)
-testing_data = count_vector.transform(x_test)
+training_data = count_vector.fit_transform(X_train)
+testing_data = count_vector.transform(X_test)
 
 ## Example of Bayes Theorem
 d = .01
