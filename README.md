@@ -5,4 +5,4 @@ Projects:
 * Determining Titanic passenger surivial through decision tree
 * Predicting Boston housing prices from historical data
 * Predicting income level from census data to determine potential donors for fictional CharityML
-* Clustering mini-project on Enron scandal data
+* K-means clustering mini-project on Enron scandal data
