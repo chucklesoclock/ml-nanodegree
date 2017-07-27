@@ -2,7 +2,8 @@
 [Udacity Machine Learning Nanodegree](https://www.udacity.com/course/machine-learning-engineer-nanodegree--nd009)
 
 Projects:
-* Determining [Titanic passenger surivial](/titanic_survival_exploration/) through decision tree
-* Predicting [Boston housing prices](/boston_housing/) from historical data
-* Predicting [income level from census data](/finding_donors/) to determine potential donors for fictional CharityML
-* [K-means clustering](/k_means/) mini-project on Enron scandal data
+* Mini-project: Spam classifier using a [bag of words](/bag_of_words/) and multinomial naive bayes implementation
+* Tutorial notebook: determine [Titanic passenger surivial](/titanic_survival_exploration/) through a manual decision tree
+* Model Evaluation/Validation: [Boston housing prices](/boston_housing/) from historical data using a decision tree regressor
+* Supervised Learning: Determined appropriate algorithm to classify [income level from census data](/finding_donors/) to identify potential donors for fictional CharityML
+* Mini-project: Ran [k-means clustering](/k_means/) on Enron scandal data
