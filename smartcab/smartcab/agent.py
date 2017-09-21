@@ -125,7 +125,7 @@ def run():
     """ Driving function for running the simulation. 
         Press ESC to close the simulation, or [SPACE] to pause the simulation. """
 
-    # flags = command_line_parse()
+    flags = command_line_parse()
 
     ##############
     # Create the environment
@@ -164,6 +164,42 @@ def run():
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05 
     #   n_test     - discrete number of testing trials to perform, default is 0
     sim.run()
+
+
+def command_line_parse():
+    parser = argparse.ArgumentParser(description='this runs the smartcab simulation with various options',
+                                     usage='smartcab/agent.py [options]')
+    parser.add_argument('-v', '--verbose', action='store_true', help='generates additional output from the simulation')
+
+    environment = parser.add_argument_group('environment/world options')
+    environment.add_argument('--num_dummies', nargs='?', type=int, default=100, metavar=('int'),
+                             help='number of dummy agents in the environment; default=%(default)s')
+    environment.add_argument('-g', '--grid_size', nargs=2, type=tuple, default=(8, 6), metavar=('COLS', 'ROWS'),
+                             help='controls the number of intersections = columns * rows; default=%(default)s')
+
+    driving_agent = parser.add_argument_group('driving agent options')
+    driving_agent.add_argument('-l', '--learning', action='store_true',
+                               help='forces the driving agent to use Q-learning')
+    driving_agent.add_argument('-e', '--epsilon', nargs='?', type=float, default=1., metavar=('FLOAT'),
+                               help='NO EFFECT without -l: value for the exploration factor; default=%(default)s')
+    driving_agent.add_argument('-a', '--alpha', nargs='?', type=float, default=0.5, metavar=('FLOAT'),
+                               help='NO EFFECT without -l: value for the learning rate; default=%(default)s')
+    driving_agent.add_argument('-D', '--deadline', action='store_true',
+                               help='enforce a deadline metric on the driving agent')
+
+    simulation = parser.add_argument_group('simulation options')
+    simulation.add_argument('-u', '--update-delay', nargs='?', type=float, default=2., metavar=('SECS'),
+                            help='time between actions of smartcab/environment; default=%(default)s')
+    simulation.add_argument('-d', '--display', action='store_false', help='disable simulation GUI')
+    simulation.add_argument('-L', '--log', action='store_true', help='log trial and simulation results to /logs/')
+    simulation.add_argument('-o', '--optimized', action='store_true',
+                            help='change the default log file name if optimized')
+
+    running = parser.add_argument_group('run-time options')
+    running.add_argument('-t', '--tolerance', nargs='?', type=float, default=0.05, metavar=('FLOAT'),
+                         help='epsilon tolerance before beginning testing after exploration; default=%(default)s')
+    running.add_argument('-n', '--tests', nargs='?', type=int, default=0, metavar=('INT'),
+                         help='number of testing trials to perform; default=%(default)s')
 
 
 if __name__ == '__main__':
