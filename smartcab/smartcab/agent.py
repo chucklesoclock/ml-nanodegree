@@ -87,6 +87,8 @@ class LearningAgent(Agent):
         # Set the agent state and default action
         self.state = state
         self.next_waypoint = self.planner.next_waypoint()
+
+        # not learning means totally random action
         if not self.learning:
             action = random.choice(self.valid_actions)
         else:
