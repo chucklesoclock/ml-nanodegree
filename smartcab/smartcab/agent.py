@@ -122,10 +122,10 @@ class LearningAgent(Agent):
 
 
 def run():
-    """ Driving function for running the simulation. 
+    """ Driving function for running the simulation.
         Press ESC to close the simulation, or [SPACE] to pause the simulation. """
 
-    flags = command_line_parse()
+    env_flags, agent_flags, follow_flag, sim_flags, run_flags = command_line_parse()
 
     ##############
     # Create the environment
@@ -133,7 +133,7 @@ def run():
     #   verbose     - set to True to display additional output from the simulation
     #   num_dummies - discrete number of dummy agents in the environment, default is 100
     #   grid_size   - discrete number of intersections (columns, rows), default is (8, 6)
-    env = Environment()
+    env = Environment(**env_flags)
 
     ##############
     # Create the driving agent
@@ -141,13 +141,13 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent)
+    agent = env.create_agent(LearningAgent, **agent_flags)
 
     ##############
     # Follow the driving agent
     # Flags:
     #   enforce_deadline - set to True to enforce a deadline metric
-    env.set_primary_agent(agent)
+    env.set_primary_agent(agent, **follow_flag)
 
     ##############
     # Create the simulation
@@ -156,50 +156,69 @@ def run():
     #   display      - set to False to disable the GUI if PyGame is enabled
     #   log_metrics  - set to True to log trial and simulation results to /logs
     #   optimized    - set to True to change the default log file name
-    sim = Simulator(env)
+    sim = Simulator(env, **sim_flags)
 
     ##############
     # Run the simulator
     # Flags:
-    #   tolerance  - epsilon tolerance before beginning testing, default is 0.05 
+    #   tolerance  - epsilon tolerance before beginning testing, default is 0.05
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run()
+    sim.run(**run_flags)
 
 
 def command_line_parse():
     parser = argparse.ArgumentParser(description='this runs the smartcab simulation with various options',
-                                     usage='smartcab/agent.py [options]')
+                                     usage='smartcab/agent.py [options]',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v', '--verbose', action='store_true', help='generates additional output from the simulation')
-
+    # env flags
     environment = parser.add_argument_group('environment/world options')
     environment.add_argument('--num_dummies', nargs='?', type=int, default=100, metavar=('int'),
-                             help='number of dummy agents in the environment; default=%(default)s')
+                             help='number of dummy agents in the environment')
     environment.add_argument('-g', '--grid_size', nargs=2, type=tuple, default=(8, 6), metavar=('COLS', 'ROWS'),
-                             help='controls the number of intersections = columns * rows; default=%(default)s')
-
+                             help='controls the number of intersections = columns * rows')
+    # agent flags
     driving_agent = parser.add_argument_group('driving agent options')
     driving_agent.add_argument('-l', '--learning', action='store_true',
                                help='forces the driving agent to use Q-learning')
     driving_agent.add_argument('-e', '--epsilon', nargs='?', type=float, default=1., metavar=('FLOAT'),
-                               help='NO EFFECT without -l: value for the exploration factor; default=%(default)s')
+                               help='NO EFFECT without -l: value for the exploration factor')
     driving_agent.add_argument('-a', '--alpha', nargs='?', type=float, default=0.5, metavar=('FLOAT'),
-                               help='NO EFFECT without -l: value for the learning rate; default=%(default)s')
-    driving_agent.add_argument('-D', '--deadline', action='store_true',
+                               help='NO EFFECT without -l: value for the learning rate')
+    driving_agent.add_argument('-D', '--deadline', action='store_true', dest='enforce_deadline',
                                help='enforce a deadline metric on the driving agent')
-
+    # sim flags
     simulation = parser.add_argument_group('simulation options')
     simulation.add_argument('-u', '--update-delay', nargs='?', type=float, default=2., metavar=('SECS'),
-                            help='time between actions of smartcab/environment; default=%(default)s')
+                            help='time between actions of smartcab/environment')
     simulation.add_argument('-d', '--display', action='store_false', help='disable simulation GUI')
-    simulation.add_argument('-L', '--log', action='store_true', help='log trial and simulation results to /logs/')
+    simulation.add_argument('-L', '--log', action='store_true', dest='log_metrics',
+                            help='log trial and simulation results to /logs')
     simulation.add_argument('-o', '--optimized', action='store_true',
                             help='change the default log file name if optimized')
-
-    running = parser.add_argument_group('run-time options')
+    # run flags
+    running = parser.add_argument_group('run-time experiment options')
     running.add_argument('-t', '--tolerance', nargs='?', type=float, default=0.05, metavar=('FLOAT'),
-                         help='epsilon tolerance before beginning testing after exploration; default=%(default)s')
-    running.add_argument('-n', '--tests', nargs='?', type=int, default=0, metavar=('INT'),
-                         help='number of testing trials to perform; default=%(default)s')
+                         help='epsilon tolerance before beginning testing after exploration')
+    running.add_argument('-n', '--tests', nargs='?', type=int, default=0, metavar=('INT'), dest='n_test',
+                         help='number of testing trials to perform')
+    return parse_flags(vars(parser.parse_args()))
+
+
+def parse_flags(flags):
+    a = b = c = d = e = dict()
+    for key in flags:
+        if key in ['verbose', 'num_dummies', 'grid_size']:
+            a[key] = flags[key]
+        elif key in ['learning', 'epsilon', 'alpha']:
+            b[key] = flags[key]
+        elif key == 'enforce_deadline':
+            c[key] = flags[key]
+        elif key in ['update_delay', 'display', 'log_metrics', 'optimized']:
+            d[key] = flags[key]
+        elif key in ['tolerance', 'n_test']:
+            e[key] = flags[key]
+    return a, b, c, d, e
 
 
 if __name__ == '__main__':
