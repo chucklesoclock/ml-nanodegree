@@ -168,12 +168,16 @@ def run():
 
 def command_line_parse():
     parser = argparse.ArgumentParser(description='this runs the smartcab simulation with various options',
-                                     usage='smartcab/agent.py [options]',
+                                     usage='smartcab/agent.py [-h -v]'
+                                           '\n\t[-N [dummies] -g [cols] [rows]'
+                                           '\n\t[-ld -ae [float]]'
+                                           '\n\t[-dLo -u [delay]]'
+                                           '\n\t[-t [tolerance] -n [test trials]]',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v', '--verbose', action='store_true', help='generates additional output from the simulation')
     # env flags
     environment = parser.add_argument_group('environment/world options')
-    environment.add_argument('--num_dummies', nargs='?', type=int, default=100, metavar=('int'),
+    environment.add_argument('-N', '--num_dummies', nargs='?', type=int, default=100, metavar=('INT'),
                              help='number of dummy agents in the environment')
     environment.add_argument('-g', '--grid_size', nargs=2, type=tuple, default=(8, 6), metavar=('COLS', 'ROWS'),
                              help='controls the number of intersections = columns * rows')
