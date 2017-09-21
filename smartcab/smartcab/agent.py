@@ -211,20 +211,21 @@ def command_line_parse():
 
 
 def parse_flags(flags):
-    a = b = c = d = e = dict()
-    for key in flags:
-        if key in ['verbose', 'num_dummies', 'grid_size']:
-            a[key] = flags[key]
-        elif key in ['learning', 'epsilon', 'alpha']:
-            b[key] = flags[key]
-        elif key == 'enforce_deadline':
-            c[key] = flags[key]
-        elif key in ['update_delay', 'display', 'log_metrics', 'optimized']:
-            d[key] = flags[key]
-        elif key in ['tolerance', 'n_test']:
-            e[key] = flags[key]
-    return a, b, c, d, e
+    """
+    gives 5 separate keyword argument dicts to pass to different functions inside run()
+    :param flags: dict
+    :return: tuple(dict, dict, dict, dict, dict)
+    :returns (environment options, agent options, deadline option, simulation setup options, simulation running options)
+    """
+    return tuple({k: flags[k] for k in options} for options in (
+        ['verbose', 'num_dummies', 'grid_size'],
+        ['learning', 'epsilon', 'alpha'],
+        ['enforce_deadline'],
+        ['update_delay', 'display', 'log_metrics', 'optimized'],
+        ['tolerance', 'n_test']
+    ))
 
 
 if __name__ == '__main__':
     run()
+
