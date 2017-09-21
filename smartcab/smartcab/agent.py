@@ -167,12 +167,13 @@ def run():
 
 
 def command_line_parse():
-    parser = argparse.ArgumentParser(description='this runs the smartcab simulation with various options',
-                                     usage='smartcab/agent.py [-h -v]'
-                                           '\n\t[-N [dummies] -g [cols] [rows]'
-                                           '\n\t[-ld -ae [float]]'
-                                           '\n\t[-dLo -u [delay]]'
-                                           '\n\t[-t [tolerance] -n [test trials]]',
+    """command line parser using argparse, obviates the need to edit code to run simulation"""
+    parser = argparse.ArgumentParser(description='runs the smartcab simulation with various options',
+                                     usage='smartcab/agent.py [-h] [-v]'
+                                           '\n    env flags:   [-N <dummies> -g <cols> <rows>]'
+                                           '\n    drive flags: [-l [-a <float> -e <float>] -d]'
+                                           '\n    sim flags:   [-dLo -u <delay_secs>]'
+                                           '\n    run flags:   [-t <tolerance> -n <tests>]',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-v', '--verbose', action='store_true', help='generates additional output from the simulation')
     # env flags
