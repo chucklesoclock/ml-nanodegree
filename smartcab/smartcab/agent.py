@@ -178,7 +178,7 @@ def command_line_parse():
     parser.add_argument('-v', '--verbose', action='store_true', help='generates additional output from the simulation')
     # env flags
     environment = parser.add_argument_group('environment/world options')
-    environment.add_argument('-N', '--num_dummies', nargs='?', type=int, default=100, metavar=('INT'),
+    environment.add_argument('-N', '--num_dummies', type=int, default=100, metavar=('INT'),
                              help='number of dummy agents in the environment')
     environment.add_argument('-g', '--grid_size', nargs=2, type=tuple, default=(8, 6), metavar=('COLS', 'ROWS'),
                              help='controls the number of intersections = columns * rows')
@@ -186,15 +186,15 @@ def command_line_parse():
     driving_agent = parser.add_argument_group('driving agent options')
     driving_agent.add_argument('-l', '--learning', action='store_true',
                                help='forces the driving agent to use Q-learning')
-    driving_agent.add_argument('-e', '--epsilon', nargs='?', type=float, default=1., metavar=('FLOAT'),
+    driving_agent.add_argument('-e', '--epsilon', type=float, default=1., metavar=('FLOAT'),
                                help='NO EFFECT without -l: value for the exploration factor')
-    driving_agent.add_argument('-a', '--alpha', nargs='?', type=float, default=0.5, metavar=('FLOAT'),
+    driving_agent.add_argument('-a', '--alpha', type=float, default=0.5, metavar=('FLOAT'),
                                help='NO EFFECT without -l: value for the learning rate')
     driving_agent.add_argument('-D', '--deadline', action='store_true', dest='enforce_deadline',
                                help='enforce a deadline metric on the driving agent')
     # sim flags
     simulation = parser.add_argument_group('simulation options')
-    simulation.add_argument('-u', '--update-delay', nargs='?', type=float, default=2., metavar=('SECS'),
+    simulation.add_argument('-u', '--update-delay', type=float, default=2., metavar=('SECONDS'),
                             help='time between actions of smartcab/environment')
     simulation.add_argument('-d', '--display', action='store_false', help='disable simulation GUI')
     simulation.add_argument('-L', '--log', action='store_true', dest='log_metrics',
@@ -203,9 +203,9 @@ def command_line_parse():
                             help='change the default log file name if optimized')
     # run flags
     running = parser.add_argument_group('run-time experiment options')
-    running.add_argument('-t', '--tolerance', nargs='?', type=float, default=0.05, metavar=('FLOAT'),
+    running.add_argument('-t', '--tolerance', type=float, default=0.05, metavar=('FLOAT'),
                          help='epsilon tolerance before beginning testing after exploration')
-    running.add_argument('-n', '--tests', nargs='?', type=int, default=0, metavar=('INT'), dest='n_test',
+    running.add_argument('-n', '--n_test', type=int, default=0, metavar=('INT'),
                          help='number of testing trials to perform')
     return parse_flags(vars(parser.parse_args()))
 
