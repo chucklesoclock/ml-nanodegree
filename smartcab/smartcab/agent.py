@@ -4,6 +4,8 @@ from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
 import argparse
+from collections import OrderedDict
+import inspect
 
 
 class LearningAgent(Agent):
@@ -127,7 +129,7 @@ def run():
     """ Driving function for running the simulation.
         Press ESC to close the simulation, or [SPACE] to pause the simulation. """
 
-    env_flags, agent_flags, follow_flag, sim_flags, run_flags = command_line_parse()
+    all_flags = command_line_parse()
 
     ##############
     # Create the environment
@@ -135,7 +137,7 @@ def run():
     #   verbose     - set to True to display additional output from the simulation
     #   num_dummies - discrete number of dummy agents in the environment, default is 100
     #   grid_size   - discrete number of intersections (columns, rows), default is (8, 6)
-    env = Environment(**env_flags)
+    env = Environment(**all_flags['env'])
 
     ##############
     # Create the driving agent
@@ -143,13 +145,13 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent, **agent_flags)
+    agent = env.create_agent(LearningAgent, **all_flags['agent'])
 
     ##############
     # Follow the driving agent
     # Flags:
     #   enforce_deadline - set to True to enforce a deadline metric
-    env.set_primary_agent(agent, **follow_flag)
+    env.set_primary_agent(agent, **all_flags['follow'])
 
     ##############
     # Create the simulation
@@ -158,75 +160,145 @@ def run():
     #   display      - set to False to disable the GUI if PyGame is enabled
     #   log_metrics  - set to True to log trial and simulation results to /logs
     #   optimized    - set to True to change the default log file name
-    sim = Simulator(env, **sim_flags)
+    sim = Simulator(env, **all_flags['sim'])
 
     ##############
     # Run the simulator
     # Flags:
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run(**run_flags)
+    sim.run(**all_flags['run'])
+
+
+def categorize_flags(set_flags):
+    """
+        gives categorized keyword argument dict that functions inside run() can unpack for user-set flags
+        :param set_flags: argparse parser output of user-set flags
+        :type set_flags: dict
+        :rtype dict
+        :returns dict of section flags
+        """
+    user_flags = {cat: {flag: set_flags[flag] for flag in flag_config[cat]} for cat in flag_config}
+    return user_flags
+
+
+smartcab_sim_run_funcs = (Environment.__init__,
+                          LearningAgent.__init__,
+                          Environment.set_primary_agent,
+                          Simulator.__init__,
+                          Simulator.run)
+
+
+def set_all_defaults(parser, *funcs):
+    """
+    Set default values from function declaration so there's no mix up.
+
+    Warning: Issues may occur if default function values goes from True -> False or vice versa as in argument actions
+    in `flags` have to change from 'store_false' to 'store_true' and vice versa :type parser: argparse.ArgumentParser
+    """
+    assert all(callable(f) for f in funcs)
+    assert isinstance(parser, argparse.ArgumentParser)
+    defaults = {}
+    for f in funcs:
+        defaults.update(get_defaults(f))
+    parser.set_defaults(**defaults)
+
+
+def get_defaults(func):
+    getargspec = inspect.getargspec
+    info = getargspec(func)
+    d = len(info.defaults)
+    return {k: v for k, v in zip(info.args[-d:], info.defaults)}
+
+
+flag_categories = ['env', 'agent', 'deadline', 'sim', 'run']
+flag_config = dict(
+    env={
+        'verbose': {
+            'names': ('-v', '--verbose'),
+            'kwargs': dict(action='store_true', help='generates additional output from the simulation')
+        },
+        'num_dummies': {
+            'names': ('-N', '--num_dummies'),
+            'kwargs': dict(type=int, metavar=('INT'), help='number of dummy agents in the environment')
+        },
+        'grid_size': {
+            'names': ('-g', '--grid_size'),
+            'kwargs': dict(nargs=2, type=int, metavar=('COLS', 'ROWS'),
+                           help='controls the number of intersections = columns * rows')
+        }
+    },
+    agent={
+        'learning': {
+            'names': ('-l', '--learning'),
+            'kwargs': dict(action='store_true', help='forces the driving agent to use Q-learning')
+        },
+        'epsilon': {
+            'names': ('-e', '--epsilon'),
+            'kwargs': dict(type=float, metavar=('FLOAT'), help='NO EFFECT without -l: value for the exploration factor')
+        },
+        'alpha': {
+            'names': ('-a', '--alpha'),
+            'kwargs': dict(type=float, metavar=('FLOAT'), help='NO EFFECT without -l: value for the learning rate')
+        }
+    },
+    deadline={
+        'enforce_deadline': {
+            'names': ['-D', '--deadline'],
+            'kwargs': dict(action='store_true', dest='enforce_deadline',
+                           help='enforce a deadline metric on the driving agent')
+        }
+    },
+    sim={
+        'update_delay': {
+            'names': ('-u', '--update-delay'),
+            'kwargs': dict(type=float, metavar=('SECONDS'), help='time between actions of smartcab/environment')
+        },
+        'display': {'names': ('-d', '--display'), 'kwargs': dict(action='store_false', help='disable simulation GUI')},
+        'log_metrics': {
+            'names': ('-L', '--log'),
+            'kwargs': dict(action='store_true', dest='log_metrics', help='log trial and simulation results to /logs')
+        },
+        'optimized': {
+            'names': ('-o', '--optimized'),
+            'kwargs': dict(action='store_true', help='change the default log file name if optimized')
+        }
+    },
+    run={
+        'tolerance': {
+            'names': ('-t', '--tolerance'),
+            'kwargs': dict(type=float, metavar=('FLOAT'),
+                           help='epsilon tolerance before beginning testing after exploration')
+        },
+        'n_test': {
+            'names': ('-n', '--n_test'),
+            'kwargs': dict(type=int, metavar=('INT'), help='number of testing trials to perform')
+        }
+    })
+flag_config = OrderedDict(sorted(flag_config.items(), key=lambda t: flag_categories.index(t[0])))
 
 
 def command_line_parse():
-    """command line parser using argparse, obviates the need to edit code to run simulation"""
+    """gets user-set flags from command line"""
     parser = argparse.ArgumentParser(description='runs the smartcab simulation with various options',
                                      usage='smartcab/agent.py [-h] [-v]'
-                                           '\n    env flags:   [-N <dummies> -g <cols> <rows>]'
-                                           '\n    drive flags: [-l [-a <float> -e <float>] -D]'
-                                           '\n    sim flags:   [-dLo -u <delay_secs>]'
-                                           '\n    run flags:   [-t <tolerance> -n <tests>]',
+                                           '\n   env flags:     [-N <dummies> -g <cols> <rows>]'
+                                           '\n   drive flags:   [-l [-a <float> -e <float>]'
+                                           '\n   deadline flag: [-D]'
+                                           '\n   sim flags:     [-dLo -u <delay_secs>]'
+                                           '\n   run flags:     [-t <tolerance> -n <tests>]',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-v', '--verbose', action='store_true', help='generates additional output from the simulation')
-    # env flags
-    environment = parser.add_argument_group('environment/world options')
-    environment.add_argument('-N', '--num_dummies', type=int, default=100, metavar=('INT'),
-                             help='number of dummy agents in the environment')
-    environment.add_argument('-g', '--grid_size', nargs=2, type=tuple, default=(8, 6), metavar=('COLS', 'ROWS'),
-                             help='controls the number of intersections = columns * rows')
-    # agent flags
-    driving_agent = parser.add_argument_group('driving agent options')
-    driving_agent.add_argument('-l', '--learning', action='store_true',
-                               help='forces the driving agent to use Q-learning')
-    driving_agent.add_argument('-e', '--epsilon', type=float, default=1., metavar=('FLOAT'),
-                               help='NO EFFECT without -l: value for the exploration factor')
-    driving_agent.add_argument('-a', '--alpha', type=float, default=0.5, metavar=('FLOAT'),
-                               help='NO EFFECT without -l: value for the learning rate')
-    # follow flag
-    driving_agent.add_argument('-D', '--deadline', action='store_true', dest='enforce_deadline',
-                               help='enforce a deadline metric on the driving agent')
-    # sim flags
-    simulation = parser.add_argument_group('simulation options')
-    simulation.add_argument('-u', '--update-delay', type=float, default=2., metavar=('SECONDS'),
-                            help='time between actions of smartcab/environment')
-    simulation.add_argument('-d', '--display', action='store_false', help='disable simulation GUI')
-    simulation.add_argument('-L', '--log', action='store_true', dest='log_metrics',
-                            help='log trial and simulation results to /logs')
-    simulation.add_argument('-o', '--optimized', action='store_true',
-                            help='change the default log file name if optimized')
-    # run flags
-    running = parser.add_argument_group('run-time experiment options')
-    running.add_argument('-t', '--tolerance', type=float, default=0.05, metavar=('FLOAT'),
-                         help='epsilon tolerance before beginning testing after exploration')
-    running.add_argument('-n', '--n_test', type=int, default=0, metavar=('INT'),
-                         help='number of testing trials to perform')
-    return parse_flags(vars(parser.parse_args()))
-
-
-def parse_flags(flags):
-    """
-    gives 5 separate keyword argument dicts to pass to different functions inside run()
-    :param flags: dict
-    :return: tuple(dict, dict, dict, dict, dict)
-    :returns (environment options, agent options, deadline option, simulation setup options, simulation running options)
-    """
-    return tuple({k: flags[k] for k in options} for options in (
-        ['verbose', 'num_dummies', 'grid_size'],
-        ['learning', 'epsilon', 'alpha'],
-        ['enforce_deadline'],
-        ['update_delay', 'display', 'log_metrics', 'optimized'],
-        ['tolerance', 'n_test']
-    ))
+    helps = ['environment/world options', 'driving agent options', 'deadline option',
+             'simulation options', 'run-time experiment options']
+    arg_groups = {key: parser.add_argument_group(text) for key, text in zip(flag_categories, helps)}
+    for group in flag_config:
+        for arg_name in flag_config[group]:
+            d = flag_config[group][arg_name]
+            arg_groups[group].add_argument(*d['names'], **d['kwargs'])
+    set_all_defaults(parser, *smartcab_sim_run_funcs)
+    flat_flags = vars(parser.parse_args())
+    flat_flags['grid_size'] = tuple(flat_flags['grid_size'])
+    return categorize_flags(flat_flags)
 
 
 if __name__ == '__main__':
