@@ -173,7 +173,7 @@ def command_line_parse():
     parser = argparse.ArgumentParser(description='runs the smartcab simulation with various options',
                                      usage='smartcab/agent.py [-h] [-v]'
                                            '\n    env flags:   [-N <dummies> -g <cols> <rows>]'
-                                           '\n    drive flags: [-l [-a <float> -e <float>] -d]'
+                                           '\n    drive flags: [-l [-a <float> -e <float>] -D]'
                                            '\n    sim flags:   [-dLo -u <delay_secs>]'
                                            '\n    run flags:   [-t <tolerance> -n <tests>]',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -192,6 +192,7 @@ def command_line_parse():
                                help='NO EFFECT without -l: value for the exploration factor')
     driving_agent.add_argument('-a', '--alpha', type=float, default=0.5, metavar=('FLOAT'),
                                help='NO EFFECT without -l: value for the learning rate')
+    # follow flag
     driving_agent.add_argument('-D', '--deadline', action='store_true', dest='enforce_deadline',
                                help='enforce a deadline metric on the driving agent')
     # sim flags
