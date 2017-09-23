@@ -127,7 +127,7 @@ def run():
     """ Driving function for running the simulation.
         Press ESC to close the simulation, or [SPACE] to pause the simulation. """
 
-    all_flags = command_line_parse()
+    flags = command_line_parse()
 
     ##############
     # Create the environment
@@ -135,7 +135,7 @@ def run():
     #   verbose     - set to True to display additional output from the simulation
     #   num_dummies - discrete number of dummy agents in the environment, default is 100
     #   grid_size   - discrete number of intersections (columns, rows), default is (8, 6)
-    env = Environment(**all_flags['env'])
+    env = Environment(**flags['env'])
 
     ##############
     # Create the driving agent
@@ -143,13 +143,13 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent, **all_flags['agent'])
+    agent = env.create_agent(LearningAgent, **flags['agent'])
 
     ##############
     # Follow the driving agent
     # Flags:
     #   enforce_deadline - set to True to enforce a deadline metric
-    env.set_primary_agent(agent, **all_flags['follow'])
+    env.set_primary_agent(agent, **flags['deadline'])
 
     ##############
     # Create the simulation
@@ -158,14 +158,14 @@ def run():
     #   display      - set to False to disable the GUI if PyGame is enabled
     #   log_metrics  - set to True to log trial and simulation results to /logs
     #   optimized    - set to True to change the default log file name
-    sim = Simulator(env, **all_flags['sim'])
+    sim = Simulator(env, **flags['sim'])
 
     ##############
     # Run the simulator
     # Flags:
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run(**all_flags['run'])
+    sim.run(**flags['run'])
 
 
 smartcab_sim_run_funcs = (Environment.__init__,
