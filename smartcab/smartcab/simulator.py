@@ -104,7 +104,14 @@ class Simulator(object):
                 self.log_filename = os.path.join("logs", "sim_no-learning.csv")
             
             self.log_fields = ['trial', 'testing', 'parameters', 'initial_deadline', 'final_deadline', 'net_reward', 'actions', 'success']
-            self.log_file = open(self.log_filename, 'wb')
+            try:
+                self.log_file = open(self.log_filename, 'wb')
+            except IOError as e:
+                if e.errno == 2:
+                    os.mkdir('logs')
+                    self.log_file = open(self.log_filename, 'wb')
+                else:
+                    raise
             self.log_writer = csv.DictWriter(self.log_file, fieldnames=self.log_fields)
             self.log_writer.writeheader()
 
