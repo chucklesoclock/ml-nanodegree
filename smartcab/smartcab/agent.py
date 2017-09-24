@@ -3,7 +3,6 @@ import math
 from environment import Agent, Environment
 from planner import RoutePlanner
 from simulator import Simulator
-from config import command_line_parse
 
 
 class LearningAgent(Agent):
@@ -127,6 +126,7 @@ def run():
     """ Driving function for running the simulation.
         Press ESC to close the simulation, or [SPACE] to pause the simulation. """
 
+    from config import command_line_parse
     flags = command_line_parse()
 
     ##############
