@@ -1,0 +1,3 @@
+[submodule "dog-project"]
+	path = dog-project
+	url = https://github.com/udacity/dog-project.git
